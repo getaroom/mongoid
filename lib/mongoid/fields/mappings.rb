@@ -10,6 +10,8 @@ module Mongoid #:nodoc
     module Mappings
       extend self
 
+      KNOWN_MODULES_FINDER = /^(BSON::|ActiveSupport::)?(\w+)$/
+
       # Get the custom field type for the provided class used in the field
       # definition.
       #
@@ -27,8 +29,7 @@ module Mongoid #:nodoc
         elsif foreign_key
           Internal::ForeignKeys.const_get(klass.to_s)
         else
-          modules = "BSON::|ActiveSupport::"
-          match = klass.to_s.match(Regexp.new("^(#{ modules })?(\\w+)$"))
+          match = klass.to_s.match(KNOWN_MODULES_FINDER)
           if match and Internal.const_defined?(match[2])
             Internal.const_get(match[2])
           else
