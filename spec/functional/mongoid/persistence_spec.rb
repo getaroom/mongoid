@@ -72,7 +72,7 @@ describe Mongoid::Persistence do
         end
 
         it "sets the field for the default role" do
-          item.is_rss.should be_true
+          item.is_rss.should be_truthy
         end
 
         it "does not set the field for non default role title" do
@@ -127,7 +127,7 @@ describe Mongoid::Persistence do
         end
 
         it "sets the rss attribute" do
-          item.is_rss.should be_true
+          item.is_rss.should be_truthy
         end
       end
     end
@@ -203,7 +203,7 @@ describe Mongoid::Persistence do
         end
 
         it "sets the field for the default role" do
-          item.is_rss.should be_true
+          item.is_rss.should be_truthy
         end
 
         it "does not set the field for non default role title" do
@@ -258,7 +258,7 @@ describe Mongoid::Persistence do
         end
 
         it "sets the rss attribute" do
-          item.is_rss.should be_true
+          item.is_rss.should be_truthy
         end
       end
     end
@@ -285,7 +285,7 @@ describe Mongoid::Persistence do
         end
 
         it "returns true" do
-          deleted.should be_true
+          deleted.should be_truthy
         end
 
         it "resets the flagged for destroy flag" do
@@ -406,21 +406,10 @@ describe Mongoid::Persistence do
       end
     end
 
-    context "when saving with a hash field with invalid keys" do
-
-      before do
-        person.map = { "bad.key" => "value" }
-      end
-
-      it "raises an error" do
-        expect { person.save }.to raise_error(BSON::InvalidKeyName)
-      end
-    end
-
     context "when validation passes" do
 
       it "returns true" do
-        person.save.should be_true
+        person.save.should be_truthy
       end
     end
 
@@ -562,21 +551,6 @@ describe Mongoid::Persistence do
 
   describe "save!" do
 
-    context "when saving with a hash field with invalid keys" do
-
-      let(:person) do
-        Person.new
-      end
-
-      before do
-        person.map = { "bad.key" => "value" }
-      end
-
-      it "raises an error" do
-        expect { person.save! }.to raise_error(BSON::InvalidKeyName)
-      end
-    end
-
     context "inserting with a field that is not unique" do
 
       context "when a unique index exists" do
@@ -678,7 +652,7 @@ describe Mongoid::Persistence do
           end
 
           it "returns true" do
-            touched.should be_true
+            touched.should be_truthy
           end
 
           it "does not set the updated at field" do
@@ -701,7 +675,7 @@ describe Mongoid::Persistence do
           end
 
           it "returns true" do
-            touched.should be_true
+            touched.should be_truthy
           end
         end
       end
@@ -727,7 +701,7 @@ describe Mongoid::Persistence do
           end
 
           it "returns true" do
-            touched.should be_true
+            touched.should be_truthy
           end
 
           it "clears the dirty tracking" do
@@ -762,7 +736,7 @@ describe Mongoid::Persistence do
           end
 
           it "returns true" do
-            touched.should be_true
+            touched.should be_truthy
           end
 
           it "clears the dirty tracking" do
@@ -784,7 +758,7 @@ describe Mongoid::Persistence do
           end
 
           it "returns false" do
-            touched.should be_false
+            touched.should be false
           end
         end
 
@@ -795,7 +769,7 @@ describe Mongoid::Persistence do
           end
 
           it "returns false" do
-            touched.should be_false
+            touched.should be false
           end
         end
       end
@@ -889,26 +863,13 @@ describe Mongoid::Persistence do
           end
 
           it "changes the attribute value" do
-            person.terms.should be_false
+            person.terms.should be false
           end
 
           it "persists the changes" do
-            person.reload.terms.should be_false
+            person.reload.terms.should be false
           end
         end
-      end
-    end
-
-    context "when saving with a hash field with invalid keys" do
-
-      let(:person) do
-        Person.new
-      end
-
-      it "raises an error" do
-        expect {
-          person.update_attribute(:map, { "bad.key" => "value" })
-        }.to raise_error(BSON::InvalidKeyName)
       end
     end
 
@@ -936,7 +897,7 @@ describe Mongoid::Persistence do
         end
 
         it "returns true" do
-          post.update_attribute(:title, "Testing").should be_true
+          post.update_attribute(:title, "Testing").should be_truthy
         end
       end
 
@@ -1072,7 +1033,7 @@ describe Mongoid::Persistence do
       it "accepts the additional parameter" do
         expect {
           person.update_attributes(*params)
-        }.to_not raise_error(ArgumentError)
+        }.to_not raise_error
       end
 
       it "calls assign_attributes" do
@@ -1110,11 +1071,11 @@ describe Mongoid::Persistence do
       end
 
       it "returns true" do
-        saved.should be_true
+        saved.should be_truthy
       end
 
       it "saves the attributes" do
-        from_db.pets.should be_false
+        from_db.pets.should be false
       end
     end
 
@@ -1294,7 +1255,7 @@ describe Mongoid::Persistence do
       it "accepts the additional parameter" do
         expect {
           person.update_attributes!(*params)
-        }.to_not raise_error(ArgumentError)
+        }.to_not raise_error
       end
 
       it "calls assign_attributes" do
