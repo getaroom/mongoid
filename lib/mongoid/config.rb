@@ -14,7 +14,6 @@ module Mongoid #:nodoc
   module Config
     extend self
     extend Options
-    include ActiveModel::Observing
 
     # @attribute [rw] master The master database.
     attr_accessor :master

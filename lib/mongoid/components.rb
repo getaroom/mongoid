@@ -15,7 +15,6 @@ module Mongoid #:nodoc
     include ActiveModel::Conversion
     include ActiveModel::MassAssignmentSecurity
     include ActiveModel::Naming
-    include ActiveModel::Observing
     include ActiveModel::Serializers::JSON
     include ActiveModel::Serializers::Xml
     include Mongoid::Atomic
