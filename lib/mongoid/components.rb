@@ -1,3 +1,5 @@
+require "protected_attributes"
+
 # encoding: utf-8
 module Mongoid #:nodoc
   module Components #:nodoc
