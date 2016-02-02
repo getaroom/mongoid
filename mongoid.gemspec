@@ -19,7 +19,6 @@ Gem::Specification.new do |s|
   s.rubyforge_project         = "mongoid"
 
   s.add_dependency("activemodel", [">= 3.1", "< 5.0"])
-  s.add_dependency("protected_attributes", ["~> 1.0"])
   s.add_dependency("tzinfo", ["~> 0.3.22"])
   s.add_dependency("mongo", ["~> 1.10"])
 
