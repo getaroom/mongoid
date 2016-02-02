@@ -1,9 +1,10 @@
-LOGGER = Logger.new(STDOUT)
-
 begin
-  require 'protected_attributes'
+  unless defined? ActiveModel::MassAssignmentSecurity
+    require 'protected_attributes'
+  end
 rescue LoadError
-  LOGGER.warn '============> gem protected_attributes required'
+  Logger.new(STDERR).error "============> gem protected_attributes required"
+  raise
 end
 
 # encoding: utf-8
@@ -20,12 +21,7 @@ module Mongoid #:nodoc
       class_attribute :paranoid
     end
 
-    begin
-      include ActiveModel::MassAssignmentSecurity
-    rescue => e
-      LOGGER.warn "============> #{e.message}"
-    end
-
+    include ActiveModel::MassAssignmentSecurity
     include ActiveModel::Conversion
     include ActiveModel::Naming
     include ActiveModel::Serializers::JSON

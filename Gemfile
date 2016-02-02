@@ -3,6 +3,10 @@ gemspec
 
 gem "rake"
 
+group :test do
+  gem 'protected_attributes'
+end
+
 platforms :mri_18 do
   unless ENV["CI"]
     gem "ruby-debug"
