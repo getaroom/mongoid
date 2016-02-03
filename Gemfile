@@ -5,6 +5,7 @@ gem "rake"
 
 group :test do
   gem 'protected_attributes'
+  gem 'rails-observers', git: 'git://github.com/hayduke19us/rails-observers.git'
 end
 
 platforms :mri_18 do

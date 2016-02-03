@@ -5,6 +5,15 @@ require "mongoid/config/environment"
 require "mongoid/config/replset_database"
 require "mongoid/config/options"
 
+begin
+  unless defined? ActiveModel::Observing
+    require 'rails-observers'
+  end
+rescue LoadError
+  Logger.new(STDERR).error "============> gem rails-observers required"
+  raise
+end
+
 module Mongoid #:nodoc
 
   # This module defines all the configuration options for Mongoid, including the
