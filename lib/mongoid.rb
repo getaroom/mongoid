@@ -81,12 +81,8 @@ require "mongoid/document"
 
 # If we are using Rails then we will include the Mongoid railtie. This has all
 # the nifty initializers that Mongoid needs.
-begin
-  if defined?(Rails)
-    require "mongoid/railtie"
-  end
-rescue LoadError => e
-  Logger.new(STDERR).warn %{ ========> #{e} Mongoid thinks this is rails, because of rails-observers }
+if defined?(Rails)
+  require "mongoid/railtie"
 end
 
 # If we are using any Rack based application then we need the Mongoid rack
