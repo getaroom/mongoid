@@ -2,11 +2,9 @@ source "http://rubygems.org"
 gemspec
 
 gem "rake"
-
-group :test do
-  gem 'protected_attributes'
-  gem 'rails-observers', git: 'git://github.com/hayduke19us/rails-observers.git'
-end
+gem 'protected_attributes'
+gem 'rails-observers', git: 'git://github.com/hayduke19us/rails-observers.git', branch: 'active_model_observer'
+gem 'bson_ext'
 
 platforms :mri_18 do
   unless ENV["CI"]
