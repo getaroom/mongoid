@@ -10,7 +10,7 @@ begin
     require 'rails/observers/active_model'
   end
 rescue LoadError
-  Logger.new(STDERR).error "============> gem rails-observers required"
+  Logger.new(STDERR).error "============> gem rails-observers/observers/active_model required"
   raise
 end
 
