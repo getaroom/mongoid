@@ -3,7 +3,7 @@ gemspec
 
 gem "rake"
 gem 'protected_attributes'
-gem 'rails-observers', git: 'git://github.com/hayduke19us/rails-observers.git', branch: 'active_model_observer'
+gem 'rails-observers'
 gem 'bson_ext'
 
 platforms :mri_18 do

@@ -7,7 +7,7 @@ require "mongoid/config/options"
 
 begin
   unless defined? ActiveModel::Observing
-    require 'rails-observers'
+    require 'rails/observers/active_model'
   end
 rescue LoadError
   Logger.new(STDERR).error "============> gem rails-observers required"
