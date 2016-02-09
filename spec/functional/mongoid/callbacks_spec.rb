@@ -20,7 +20,7 @@ describe Mongoid::Callbacks do
 
       context "when the child does not have the same callback defined" do
 
-        let(:band) do
+        let!(:band) do
           Band.new
         end
 
