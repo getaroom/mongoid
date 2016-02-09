@@ -1,4 +1,6 @@
 # encoding: utf-8
+require 'yaml'
+
 module Mongoid #:nodoc:
   class Javascript
     # Constant for the file that defines all the js functions.
