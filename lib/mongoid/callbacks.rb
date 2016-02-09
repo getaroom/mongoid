@@ -1,4 +1,5 @@
 # encoding: utf-8
+
 module Mongoid #:nodoc:
 
   # This module contains all the callback hooks for Mongoid.
@@ -58,10 +59,11 @@ module Mongoid #:nodoc:
           return false
         end
       end
+
+      block = block_given? ? block : Proc.new { 'default_proc' }
+
       callback_executable?(kind) ? super(kind, *args, &block) : true
     end
-
-    private
 
     # Get all the child embedded documents that are flagged as cascadable.
     #

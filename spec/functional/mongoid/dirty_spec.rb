@@ -261,14 +261,12 @@ describe Mongoid::Dirty do
 
       before do
         Acolyte.set_callback(:save, :after, :if => :callback_test?) do |doc|
-          doc.changes.should == { "status" => [ nil, "testing" ] }
+          doc.changes.should == { "status" => [nil, "testing"] }
         end
       end
 
       after do
-        Acolyte._save_callbacks.reject! do |callback|
-          callback.kind == :after
-        end
+        Acolyte.reset_callbacks(:save)
       end
 
       it "retains the changes until after all callbacks" do
@@ -289,9 +287,7 @@ describe Mongoid::Dirty do
       end
 
       after do
-        Acolyte._save_callbacks.reject! do |callback|
-          callback.kind == :after
-        end
+        Acolyte.reset_callbacks(:save)
       end
 
       it "retains the changes until after all callbacks" do
