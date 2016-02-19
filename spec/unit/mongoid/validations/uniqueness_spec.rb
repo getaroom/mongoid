@@ -18,10 +18,6 @@ describe Mongoid::Validations::UniquenessValidator do
         stub
       end
 
-      before do
-        validator.setup(Dictionary)
-      end
-
       context "when no options provided" do
 
         let(:options) do
@@ -169,10 +165,6 @@ describe Mongoid::Validations::UniquenessValidator do
 
       let(:criteria) do
         stub
-      end
-
-      before do
-        validator.setup(Definition)
       end
 
       context "when no options provided" do

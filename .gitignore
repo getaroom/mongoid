@@ -6,7 +6,6 @@ sandbox/*
 tmp/*
 *.gem
 .bundle
-Gemfile.lock
 rdoc/*
 TODO
 ISSUES

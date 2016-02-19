@@ -18,3 +18,9 @@ platforms :mri_19 do
     gem "ruby-debug19", :require => "ruby-debug" if RUBY_VERSION < "1.9.3"
   end
 end
+
+platforms :mri_20, :mri_21, :mri_22 do
+  unless ENV["CI"]
+    gem 'debugger'
+  end
+end
