@@ -16,9 +16,6 @@ module Mongoid #:nodoc:
     class UniquenessValidator < ActiveModel::EachValidator
       # Unfortunately, we have to tie Uniqueness validators to a class.
       #
-      # @example Setup the validator.
-      #   UniquenessValidator.new.setup(Person)
-      #
       # Validate the document for uniqueness violations.
       #
       # @example Validate the document.
