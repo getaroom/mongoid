@@ -53,6 +53,7 @@ module Mongoid #:nodoc:
     # @return [ Document ] The document
     #
     # @since 2.3.0
+
     def run_callbacks(kind, *args, &block)
       cascadable_children(kind).each do |child|
         unless child.run_callbacks(child_callback_type(kind, child), *args)
@@ -60,7 +61,7 @@ module Mongoid #:nodoc:
         end
       end
 
-      block = block_given? ? block : Proc.new { 'default_proc' }
+      block = block_given? ? block : Proc.new { self }
 
       callback_executable?(kind) ? super(kind, *args, &block) : true
     end

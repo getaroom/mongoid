@@ -31,6 +31,10 @@ describe Mongoid::Callbacks do
         it "does not cascade to the child" do
           band.run_callbacks(:rearrange).should be_truthy
         end
+
+        it "returns the parent document" do
+          band.run_callbacks(:rearrange).should eq(band)
+        end
       end
     end
 
