@@ -66,6 +66,8 @@ module Mongoid #:nodoc:
       callback_executable?(kind) ? super(kind, *args, &block) : true
     end
 
+    private
+
     # Get all the child embedded documents that are flagged as cascadable.
     #
     # @example Get all the cascading children.
