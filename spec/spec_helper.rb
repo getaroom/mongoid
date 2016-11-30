@@ -10,6 +10,8 @@ require "mongoid"
 require "mocha"
 require "rspec"
 
+I18n.enforce_available_locales = false
+
 ENV["MONGOID_SPEC_HOST"] ||= "localhost"
 ENV["MONGOID_SPEC_PORT"] ||= "27017"
 
