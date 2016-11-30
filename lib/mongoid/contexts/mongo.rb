@@ -452,7 +452,9 @@ module Mongoid #:nodoc:
         fields = options[:fields]
         if fields && fields.size > 0 && !fields.include?(:_type)
           if fields.kind_of?(Hash)
-            fields[:_type] = 1 if fields.first.last != 0 # Not excluding
+            if !(fields.size == 1 && fields.first.last.kind_of?(Hash)) && fields.first.last != 0 # Not excluding
+              fields[:_type] = 1
+            end
           else
             fields << :type
           end

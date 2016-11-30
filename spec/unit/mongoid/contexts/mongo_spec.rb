@@ -216,14 +216,30 @@ describe Mongoid::Contexts::Mongo do
 
     context "when field options are supplied" do
 
+      let(:context) do
+        Mongoid::Contexts::Mongo.new(crit)
+      end
+
+      context "when the only field is the $meta operator" do
+
+        let(:crit) do
+          executed.fields(:score => { :$meta => "textScore" })
+        end
+
+        let(:expected_options) do
+          { :skip => 20, :fields => { :score => { :$meta => "textScore" } } }
+        end
+
+        it "adds does not add _type to the fields" do
+          collection.expects(:find).with(selector, expected_options).returns(cursor)
+          context.execute.should eq(cursor)
+        end
+      end
+
       context "when _type not in the field list" do
 
         let(:crit) do
           executed.only(:title)
-        end
-
-        let(:context) do
-          Mongoid::Contexts::Mongo.new(crit)
         end
 
         let(:expected_options) do
