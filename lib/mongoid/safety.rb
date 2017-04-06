@@ -61,7 +61,14 @@ module Mongoid #:nodoc:
         else
           safety = Mongoid.persist_in_safe_mode
         end
-        options.merge!({ :safe => safety })
+
+        write_concern = case safety
+        when true then { :w => 1 }
+        when false then { :w => 0 }
+        else safety
+        end
+
+        options.merge!(write_concern)
       end
     end
 
