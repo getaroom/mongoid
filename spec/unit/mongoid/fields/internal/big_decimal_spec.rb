@@ -53,13 +53,6 @@ describe Mongoid::Fields::Internal::BigDecimal do
         field.deserialize(nil).should be_nil
       end
     end
-
-    context "when the value is non-nil blank" do
-
-      it "returns 0" do
-        field.deserialize('  ').should be_zero
-      end
-    end
   end
 
   describe "#serialize" do
