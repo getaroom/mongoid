@@ -15,7 +15,36 @@ module Mongoid
     #
     #     validates_associated :name, :addresses
     #   end
-    class AssociatedValidator < ActiveModel::Validator
+    class AssociatedValidator < ActiveModel::EachValidator
+      # Validates that the associations provided are either all nil or all
+      # valid. If neither is true then the appropriate errors will be added to
+      # the parent document.
+      #
+      # @example Validate the association.
+      #   validator.validate_each(document, :name, name)
+      #
+      # @param [ Document ] document The document to validate.
+      # @param [ Symbol ] attribute The association to validate.
+      # @param [ Object ] value The value of the association.
+      def validate_each(document, attribute, value)
+        begin
+          document.begin_validate
+          valid = Array.wrap(value).collect do |doc|
+            if doc.nil? || doc.flagged_for_destroy?
+              true
+            else
+              doc.validated? ? true : doc.valid?
+            end
+          end.all?
+        ensure
+          document.exit_validate
+        end
+        document.errors.add(attribute, :invalid, **options) unless valid
+      end
+    end
+
+    # ignored:
+    class DisabledAssociatedValidatorFast < ActiveModel::Validator
       # Required by `validates_with` so that the validator
       # gets added to the correct attributes.
       def attributes
