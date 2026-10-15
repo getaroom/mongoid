@@ -31,19 +31,29 @@ module Mongoid
           Mongoid::Fields::Validators::Macro.validate_field_name(self, value)
           value = value.to_s
           if defined?(::ActiveSupport::ClassAttribute)
-            # Rails 8.1 added a required `namespaced_name` parameter to
-            # ActiveSupport::ClassAttribute.redefine (see
-            # activesupport/lib/active_support/core_ext/class/attribute.rb).
-            # Support both the old (3-arg) and new (4-arg) signatures so this
-            # works across the activemodel/activesupport versions Mongoid
-            # supports.
-            if ::ActiveSupport::ClassAttribute.method(:redefine).arity.abs >= 4
-              ::ActiveSupport::ClassAttribute.redefine(
-                self, 'discriminator_key', :__class_attr_discriminator_key, value
-              )
-            else
-              ::ActiveSupport::ClassAttribute.redefine(self, 'discriminator_key', value)
-            end
+            # Prior to Rails 8.1, ActiveSupport::ClassAttribute.redefine(owner,
+            # name, value) directly redefined the public `discriminator_key`
+            # singleton method on `owner`, which subclasses would pick up via
+            # normal Ruby method lookup on the singleton class chain.
+            #
+            # Rails 8.1 changed this to redefine(owner, name, namespaced_name,
+            # value), which instead updates a private `__class_attr_<name>`
+            # attribute that the *original* `discriminator_key` reader (as
+            # defined once by `class_attribute :discriminator_key` below) is
+            # supposed to delegate to. That doesn't work here: right after
+            # `class_attribute :discriminator_key` runs in the `included do`
+            # block, `delegate :discriminator_key, to: ::Mongoid` immediately
+            # overwrites that reader, so it never reads the namespaced
+            # attribute we'd be updating.
+            #
+            # Instead of depending on ActiveSupport::ClassAttribute's private
+            # storage mechanism (which varies across versions), redefine the
+            # public reader directly on this class's singleton class, exactly
+            # like the pre-8.1 behavior did. This is simpler and version
+            # agnostic, and subclasses still inherit the new value via normal
+            # Ruby method lookup.
+            singleton_class.silence_redefinition_of_method(:discriminator_key)
+            define_singleton_method(:discriminator_key) { value }
           else
             super
           end
