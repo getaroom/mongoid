@@ -31,7 +31,19 @@ module Mongoid
           Mongoid::Fields::Validators::Macro.validate_field_name(self, value)
           value = value.to_s
           if defined?(::ActiveSupport::ClassAttribute)
-            ::ActiveSupport::ClassAttribute.redefine(self, 'discriminator_key', value)
+            # Rails 8.1 added a required `namespaced_name` parameter to
+            # ActiveSupport::ClassAttribute.redefine (see
+            # activesupport/lib/active_support/core_ext/class/attribute.rb).
+            # Support both the old (3-arg) and new (4-arg) signatures so this
+            # works across the activemodel/activesupport versions Mongoid
+            # supports.
+            if ::ActiveSupport::ClassAttribute.method(:redefine).arity.abs >= 4
+              ::ActiveSupport::ClassAttribute.redefine(
+                self, 'discriminator_key', :__class_attr_discriminator_key, value
+              )
+            else
+              ::ActiveSupport::ClassAttribute.redefine(self, 'discriminator_key', value)
+            end
           else
             super
           end
