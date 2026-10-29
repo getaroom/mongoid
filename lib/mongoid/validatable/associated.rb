@@ -40,44 +40,45 @@ module Mongoid
 
       private
 
-      # Validates that the given association provided is either nil,
-      # persisted and unchanged, or invalid. Otherwise, the appropriate errors
+      # Validates that every child of the given association is valid,
+      # skipping those flagged for destroy. Otherwise, the appropriate errors
       # will be added to the parent document.
+      #
+      # getaroom fork override: upstream only validates children that are new
+      # or changed, and for has_many only those already loaded into memory.
+      # That breaks child validations that depend on the parent: if only the
+      # parent changes, a saved child is never re-checked, and the parent
+      # saves even though the child is now invalid. This is the behavior of
+      # our old `8.1-stable-sc` branch. Upstream tried to fix it
+      # (MONGOID-5822) and reverted the fix (#6014).
+      #
+      # Cost: this reads the whole association, so a has_many is loaded from
+      # the database on every validation of the parent. The validation
+      # itself is skipped for a child that was already validated in this pass.
+      #
+      # Removing this override: restore the upstream body (inspect the proxy
+      # with `document.ivar(attribute)`, use #get_target_documents, and only
+      # validate children that are `!persisted? || changed?`) once either
+      #
+      # * upstream ships a fix for MONGOID-5822 that validates unchanged
+      #   children when the parent changes, or
+      # * the app no longer has child validations that read the parent.
+      #   Search for `validate` blocks and validators on embedded or
+      #   has_many children that call `parent` / the inverse association.
+      #
+      # What can break when rebasing onto a newer Mongoid: the pieces this
+      # method touches, #validating, #read_attribute_for_validation,
+      # #flagged_for_destroy? and #validated?. #get_target_documents and its
+      # helpers below are left in place but are no longer called from here.
+      # The specs in spec/mongoid/validatable/associated_all_children_spec.rb
+      # cover the behavior.
       #
       # @param [ Document ] document The document to validate.
       # @param [ Symbol ] attribute The association to validate.
       def validate_association(document, attribute)
-        # grab the proxy from the instance variable directly; we don't want
-        # any loading logic to run; we just want to see if it's already
-        # been loaded.
-        proxy = document.ivar(attribute)
-        return unless proxy
-
-        # if the variable exists, now we see if it is a proxy, or an actual
-        # document. It might be a literal document instead of a proxy if this
-        # document was created with a Document instance as a provided attribute,
-        # e.g. "Post.new(message: Message.new)".
-        target = proxy.respond_to?(:_target) ? proxy._target : proxy
-
-        # Now, fetch the list of documents from the target. Target may be a
-        # single value, or a list of values, and in the case of HasMany,
-        # might be a rather complex collection. We need to do this without
-        # triggering a load, so it's a bit of a delicate dance.
-        list = get_target_documents(target)
-
         valid = document.validating do
-          # Now, treating the target as an array, look at each element
-          # and see if it is valid, but only if it has already been
-          # persisted, or changed, and hasn't been flagged for destroy.
-          #
-          # use map.all? instead of just all?, because all? will do short-circuit
-          # evaluation and terminate on the first failed validation.
-          list.map do |value|
-            if value && !value.flagged_for_destroy? && (!value.persisted? || value.changed?)
-              value.validated? ? true : value.valid?
-            else
-              true
-            end
+          Array.wrap(document.read_attribute_for_validation(attribute)).map do |doc|
+            doc.nil? || doc.flagged_for_destroy? || doc.validated? || doc.valid?
           end.all?
         end
 
