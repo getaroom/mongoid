@@ -3,7 +3,7 @@
 require "spec_helper"
 
 # Covers the getaroom override of AssociatedValidator#validate_association,
-# which validates every loaded child instead of only new or changed ones.
+# which validates every child instead of only new or changed ones.
 module AssociatedAllChildrenSpec
   class Parent
     include Mongoid::Document
@@ -44,15 +44,6 @@ describe Mongoid::Validatable::AssociatedValidator do
 
     expect(parent).not_to be_valid
     expect(parent.errors[:children]).to be_present
-  end
-
-  it "does not load or validate an association that was never accessed" do
-    parent = AssociatedAllChildrenSpec::Parent.find(self.parent.id)
-    parent.kind = "restricted"
-
-    expect(parent.ivar(:children)).to be_falsey
-    expect(parent).to be_valid
-    expect(parent.ivar(:children)).to be_falsey
   end
 
   it "is valid when no child validation fails" do

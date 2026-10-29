@@ -40,25 +40,25 @@ module Mongoid
 
       private
 
-      # Validates that every already-loaded child of the given association is
-      # valid, skipping those flagged for destroy. Otherwise, the appropriate
-      # errors will be added to the parent document.
+      # Validates that every child of the given association is valid,
+      # skipping those flagged for destroy. Otherwise, the appropriate errors
+      # will be added to the parent document.
       #
       # getaroom fork override: upstream only validates children that are new
-      # or changed. That breaks child validations that depend on the parent: if
-      # only the parent changes, a saved child is never re-checked, and the
-      # parent saves even though the child is now invalid. This is the behavior
-      # of our old `8.1-stable-sc` branch. Upstream tried to fix it
+      # or changed, and for has_many only those already loaded into memory.
+      # That breaks child validations that depend on the parent: if only the
+      # parent changes, a saved child is never re-checked, and the parent
+      # saves even though the child is now invalid. This is the behavior of
+      # our old `8.1-stable-sc` branch. Upstream tried to fix it
       # (MONGOID-5822) and reverted the fix (#6014).
       #
-      # Like upstream, this never loads the association: it inspects the
-      # proxy via `document.ivar(attribute)`, so only children already in
-      # memory are validated. Reading the attribute instead would load every
-      # unloaded child on each save and make unrelated saves fail on legacy
-      # data in children nothing touched.
+      # Cost: this reads the whole association, so a has_many is loaded from
+      # the database on every validation of the parent. The validation
+      # itself is skipped for a child that was already validated in this pass.
       #
-      # Removing this override: restore the upstream condition
-      # `(!value.persisted? || value.changed?)` in the block below once either
+      # Removing this override: restore the upstream body (inspect the proxy
+      # with `document.ivar(attribute)`, use #get_target_documents, and only
+      # validate children that are `!persisted? || changed?`) once either
       #
       # * upstream ships a fix for MONGOID-5822 that validates unchanged
       #   children when the parent changes, or
@@ -67,33 +67,18 @@ module Mongoid
       #   has_many children that call `parent` / the inverse association.
       #
       # What can break when rebasing onto a newer Mongoid: the pieces this
-      # method touches, #validating, #flagged_for_destroy? and #validated?,
-      # and #get_target_documents below. The specs in
-      # spec/mongoid/validatable/associated_all_children_spec.rb cover the
-      # behavior.
+      # method touches, #validating, #read_attribute_for_validation,
+      # #flagged_for_destroy? and #validated?. #get_target_documents and its
+      # helpers below are left in place but are no longer called from here.
+      # The specs in spec/mongoid/validatable/associated_all_children_spec.rb
+      # cover the behavior.
       #
       # @param [ Document ] document The document to validate.
       # @param [ Symbol ] attribute The association to validate.
       def validate_association(document, attribute)
-        # Grab the proxy from the instance variable directly; we don't want
-        # any loading logic to run.
-        proxy = document.ivar(attribute)
-        return unless proxy
-
-        # It might be a literal document instead of a proxy if this document
-        # was created with a Document instance as a provided attribute.
-        target = proxy.respond_to?(:_target) ? proxy._target : proxy
-        list = get_target_documents(target)
-
         valid = document.validating do
-          # Use map.all? instead of all?, which would short-circuit on the
-          # first failed validation.
-          list.map do |value|
-            if value && !value.flagged_for_destroy?
-              value.validated? ? true : value.valid?
-            else
-              true
-            end
+          Array.wrap(document.read_attribute_for_validation(attribute)).map do |doc|
+            doc.nil? || doc.flagged_for_destroy? || doc.validated? || doc.valid?
           end.all?
         end
 
