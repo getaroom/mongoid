@@ -313,20 +313,54 @@ module Mongoid
         # @param [ Array<Document> ] docs The documents.
         #
         # @return [ Array<Hash> ] The documents as an array of hashes.
+        #
+        # getaroom fork override: this is the pre-8.1.12 implementation, which
+        # appends documents one at a time with #append. Upstream 8.1.12
+        # (MONGOID-4889) replaced it with EmbedsMany::Proxy#append_many as a
+        # performance optimization, which changed two behaviors we rely on:
+        #
+        # * Data loss: a child already attached to the parent (e.g. built with
+        #   `Child.new(parent: parent)`) and then appended with `<<` is never
+        #   written to the database, but is still marked as persisted, so a
+        #   later `save!` skips it too. #append_many drops it as a duplicate.
+        # * Ordering: assigning `parent.children = [...]` re-sorts the
+        #   documents by the relation's `order:` option instead of keeping the
+        #   order they were given in.
+        #
+        # EmbedsMany::Proxy#append_many and #process_incoming_docs are left in
+        # place but are no longer called from here.
+        #
+        # Removing this override: restore the upstream body (the
+        # `append_many(docs) do |doc| ... end` version) once either
+        #
+        # * upstream fixes MONGOID-4889's regressions (check whether
+        #   `Child.new(parent: parent)` followed by `parent.children << child`
+        #   persists the child, and whether assignment keeps the given order), or
+        # * the app no longer depends on that behavior. Search for embedded
+        #   children built with the inverse set before being appended, and for
+        #   `embeds_many ... order:` relations that are assigned wholesale.
+        #
+        # What can break when rebasing onto a newer Mongoid: the pieces this
+        # method touches. #append, #persistable?, #_assigning?, #path=,
+        # #inserts_valid= and the callers #batch_insert / #batch_replace plus
+        # #post_process_batch_insert. A conflict in this file or a NoMethodError
+        # from any of those means the override needs porting, not just
+        # re-applying. The specs in spec/mongoid/association/embedded/
+        # embeds_many/batch_insert_spec.rb cover both behaviors above.
         def pre_process_batch_insert(docs)
-          [].tap do |results|
-            append_many(docs) do |doc|
-              if persistable? && !_assigning?
-                self.path = doc.atomic_path unless path
-                if doc.valid?(:create)
-                  doc.run_before_callbacks(:save, :create)
-                else
-                  self.inserts_valid = false
-                end
-              end
+          docs.map do |doc|
+            next unless doc
 
-              results << doc.send(:as_attributes)
+            append(doc)
+            if persistable? && !_assigning?
+              self.path = doc.atomic_path unless path
+              if doc.valid?(:create)
+                doc.run_before_callbacks(:save, :create)
+              else
+                self.inserts_valid = false
+              end
             end
+            doc.send(:as_attributes)
           end
         end
 
